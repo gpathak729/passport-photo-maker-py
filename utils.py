@@ -97,22 +97,45 @@ def draw_guides(pil_img: Image.Image, crop_rect: Dict, params: Dict) -> Image.Im
 # ---------- 4×6 sheet ----------
 def layout_on_4x6(img_list):
     """
-    4x6 in @ 300 DPI = 1200x1800 px (landscape: 1800x1200).
-    Fills a 3x2 grid (6 slots) with copies of the first image if needed.
-    Works for 600x600 (2x2 in) or ~413x531 (35x45 mm).
+    Build a 4x6 inch (1800x1200 px @300dpi) sheet.
+    - 3 columns x 2 rows (6 slots)
+    - Auto-scales images DOWN to fit the grid (never upscales)
+    - Centers each image in its cell so nothing gets cut
     """
-    sheet = Image.new("RGB", (1800, 1200), (255, 255, 255))
-    pad_x, pad_y = 50, 50
-    cols, rows = 3, 2
+    from PIL import Image
+
+    SHEET_W, SHEET_H = 1800, 1200            # 6x4 inches landscape at 300dpi
+    COLS, ROWS = 3, 2
+    PAD_X, PAD_Y = 50, 50                    # outer padding
+    GAP_X, GAP_Y = 40, 40                    # gap between cells (fixed, non-negative)
+
+    sheet = Image.new("RGB", (SHEET_W, SHEET_H), (255, 255, 255))
     if not img_list:
         return sheet
-    w, h = img_list[0].size
-    gap_x = (1800 - 2*pad_x - cols*w) // max(1, cols-1) if cols > 1 else 0
-    gap_y = (1200 - 2*pad_y - rows*h) // max(1, rows-1) if rows > 1 else 0
 
-    for i in range(cols * rows):
-        im = img_list[i % len(img_list)]
-        cx = pad_x + (i % cols) * (w + gap_x)
-        cy = pad_y + (i // cols) * (h + gap_y)
-        sheet.paste(im.convert("RGB"), (cx, cy))
+    # Compute each cell's max drawable area
+    drawable_w = SHEET_W - 2*PAD_X - (COLS - 1) * GAP_X
+    drawable_h = SHEET_H - 2*PAD_Y - (ROWS - 1) * GAP_Y
+    cell_w = drawable_w // COLS
+    cell_h = drawable_h // ROWS
+
+    # Use the first image size as reference; scale every instance to fit cell
+    base = img_list[0].convert("RGB")
+    bw, bh = base.size
+    # downscale only
+    scale = min(cell_w / bw, cell_h / bh, 1.0)
+    new_w = int(bw * scale)
+    new_h = int(bh * scale)
+    fitted = base.resize((new_w, new_h), Image.LANCZOS)
+
+    # Paste 6 copies, centered in each cell
+    for r in range(ROWS):
+        for c in range(COLS):
+            slot_x = PAD_X + c * (cell_w + GAP_X)
+            slot_y = PAD_Y + r * (cell_h + GAP_Y)
+            # center inside the cell
+            px = slot_x + (cell_w - new_w) // 2
+            py = slot_y + (cell_h - new_h) // 2
+            sheet.paste(fitted, (px, py))
+
     return sheet
