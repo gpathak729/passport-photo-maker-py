@@ -1,0 +1,9 @@
+streamlit==1.36.0
+rembg==2.0.56
+onnxruntime==1.17.3
+mediapipe==0.10.14
+opencv-python-headless==4.10.0.84
+Pillow==10.4.0
+numpy==1.26.4
+labelme==5.2.1
+

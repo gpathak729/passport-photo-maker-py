@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Streamlit
+.streamlit/
+
+# Ignore everything under data/, but keep the empty folders via .gitkeep
+data/*
+!data/images/.gitkeep
+!data/masks/.gitkeep
