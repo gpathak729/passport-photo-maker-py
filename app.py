@@ -12,7 +12,7 @@ from utils import (
 )
 
 st.set_page_config(page_title="Passport Photo Maker (Python)", page_icon="🪪", layout="wide")
-st.title("Passport Photo Maker — Python/Streamlit")
+st.title("Passport Photo Maker")
 st.write("Upload a photo or take a camera snapshot, choose background, and export a passport-ready image.")
 
 # -------------------- controls --------------------
